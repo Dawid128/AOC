@@ -5,7 +5,7 @@ VisualStudioVersion = 17.4.33213.308
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "2020_01_ReportRepair", "2020_01_ReportRepair\2020_01_ReportRepair.csproj", "{B854FBB2-E924-4E88-8CE6-49FA9F6FE656}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AdventCodeExtension", "..\AdventCodeExtension\AdventCodeExtension.csproj", "{F7F463E7-8DC8-4C93-959C-F7383FE474A6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AdventCodeExtension", "AdventCodeExtension\AdventCodeExtension.csproj", "{F7F463E7-8DC8-4C93-959C-F7383FE474A6}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "2020_02_PasswordPhilosophy", "2020_02_PasswordPhilosophy\2020_02_PasswordPhilosophy.csproj", "{3ED41815-BFCB-4A9C-86C0-85C0116FE990}"
 EndProject
