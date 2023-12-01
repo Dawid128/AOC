@@ -252,5 +252,23 @@ namespace AdventCodeExtension
 
             return reversedBits;
         }
+
+        public static string ReplaceFirst(this string original, string search, string replacement)
+        {
+            int index = original.IndexOf(search);
+            if (index == -1)
+                return original;
+
+            return original.Substring(0, index) + replacement + original.Substring(index + search.Length);
+        }
+
+        public static string ReplaceLast(this string original, string search, string replacement)
+        {
+            int index = original.LastIndexOf(search);
+            if (index == -1)
+                return original;
+
+            return original.Substring(0, index) + replacement + original.Substring(index + search.Length);
+        }
     }
 }
