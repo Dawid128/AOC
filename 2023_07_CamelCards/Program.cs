@@ -1,4 +1,4 @@
-﻿//[Order][OrderbyVsThenBy]
+﻿//[Order][OrderbyVsThenBy][OrderByWithTuple][TupleAndIComparable]
 using System.Diagnostics;
 
 var input = File.ReadAllText($"Resources\\Input.txt");
@@ -93,10 +93,6 @@ int GetHandType(Dictionary<int, int> groups)
 
 static class Extensions
 {
-    public static IOrderedEnumerable<(int[] Cards, int Score, int HandType)> SortCards(this IEnumerable<(int[] Cards, int Score, int HandType)> cards) => cards.OrderBy(x => x.HandType)
-                                                                                                                                                               .ThenBy(x => x.Cards[0])
-                                                                                                                                                               .ThenBy(x => x.Cards[1])
-                                                                                                                                                               .ThenBy(x => x.Cards[2])
-                                                                                                                                                               .ThenBy(x => x.Cards[3])
-                                                                                                                                                               .ThenBy(x => x.Cards[4]);
+    public static IOrderedEnumerable<(int[] Cards, int Score, int HandType)> SortCards(this IEnumerable<(int[] Cards, int Score, int HandType)> cards)
+    => cards.OrderBy(x => (x.HandType, x.Cards[0], x.Cards[1], x.Cards[2], x.Cards[3], x.Cards[4]));
 }
