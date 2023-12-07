@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿//[Order][OrderbyVsThenBy]
+using System.Diagnostics;
 
 var input = File.ReadAllText($"Resources\\Input.txt");
 var stopwatch = Stopwatch.StartNew();
@@ -22,13 +23,8 @@ object Part1(string input, IList<char> cards)
     return input.Split(Environment.NewLine)
                 .Select(x => x.Split(" "))
                 .Select(x => (Cards: x[0].Select(s => cards.IndexOf(s)).ToArray(), Score: int.Parse(x[1].Replace(" ", string.Empty))))
-                .Select(x => (x.Cards, x.Score, HandType: GetHandType(x.Cards)))
-                .OrderBy(x => x.Cards[4])
-                .OrderBy(x => x.Cards[3])
-                .OrderBy(x => x.Cards[2])
-                .OrderBy(x => x.Cards[1])
-                .OrderBy(x => x.Cards[0])
-                .OrderBy(x => x.HandType)
+                .Select(x => (x.Cards, x.Score, HandType: CalculateHandType(x.Cards)))
+                .SortCards()
                 .Select((x, index) => x.Score * (index + 1))
                 .Sum();
 }
@@ -37,50 +33,30 @@ object Part2(string input, IList<char> cards)
 {
     return input.Split(Environment.NewLine)
                 .Select(x => x.Split(" "))
-                .Select(x => (Cards: x[0].Select(s => cards.IndexOf(s)).ToArray(), Score: int.Parse(x[1].Replace(" ", string.Empty)), TEST: x[0]))
-                .Select(x => (x.Cards, x.Score, HandType: GetHandTypeWithJoker(x.Cards, x.TEST)))
-                .OrderBy(x => x.Cards[4])
-                .OrderBy(x => x.Cards[3])
-                .OrderBy(x => x.Cards[2])
-                .OrderBy(x => x.Cards[1])
-                .OrderBy(x => x.Cards[0])
-                .OrderBy(x => x.HandType)
+                .Select(x => (Cards: x[0].Select(s => cards.IndexOf(s)).ToArray(), Score: int.Parse(x[1].Replace(" ", string.Empty))))
+                .Select(x => (x.Cards, x.Score, HandType: CalculateHandTypeWithJoker(x.Cards)))
+                .SortCards()
                 .Select((x, index) => x.Score * (index + 1))
                 .Sum();
 }
 
-int GetHandType(IList<int> cards)
+int CalculateHandType(IList<int> cards)
 {
-    var groups = cards.GroupBy(x => x).ToList();
-    if (groups.Count == 1)
-        return 7;
+    var groups = cards.OrderByDescending(x => x)
+                      .GroupBy(x => x)
+                      .ToDictionary(x => x.Key, x => x.Count());
 
-    if (groups.Count == 2 && groups.Any(x => x.Count() == 4))
-        return 6;
-
-    if (groups.Count == 2 && groups.Any(x => x.Count() == 3))
-        return 5;
-
-    if (groups.Count == 3 && groups.Any(x => x.Count() == 3))
-        return 4;
-
-    if (groups.Count == 3 && groups.Count(x => x.Count() == 2) == 2)
-        return 3;
-
-    if (groups.Count == 4 && groups.Any(x => x.Count() == 2)) 
-        return 2;
-
-    return 1;
+    return GetHandType(groups);
 }
 
-int GetHandTypeWithJoker(IList<int> cards, string TEST)
+int CalculateHandTypeWithJoker(IList<int> cards)
 {
     var groups = cards.OrderByDescending(x => x)
                       .GroupBy(x => x)
                       .ToDictionary(x => x.Key, x => x.Count());
 
     //SKIP "JJJJJ" 
-    //BE CAREFUL "3xJ" -> skip J when search max
+    //BE CAREFUL "3xJ" -> skip J (0) when search max
     if (groups.TryGetValue(0, out var count) && count < 5)
     {
         var max = groups.Where(x => x.Key != 0).MaxBy(x => x.Value);
@@ -89,6 +65,11 @@ int GetHandTypeWithJoker(IList<int> cards, string TEST)
         groups.Add(max.Key, max.Value + count);
     }
 
+    return GetHandType(groups);
+}
+
+int GetHandType(Dictionary<int, int> groups)
+{
     if (groups.Count == 1)
         return 7;
 
@@ -108,4 +89,14 @@ int GetHandTypeWithJoker(IList<int> cards, string TEST)
         return 2;
 
     return 1;
+}
+
+static class Extensions
+{
+    public static IOrderedEnumerable<(int[] Cards, int Score, int HandType)> SortCards(this IEnumerable<(int[] Cards, int Score, int HandType)> cards) => cards.OrderBy(x => x.HandType)
+                                                                                                                                                               .ThenBy(x => x.Cards[0])
+                                                                                                                                                               .ThenBy(x => x.Cards[1])
+                                                                                                                                                               .ThenBy(x => x.Cards[2])
+                                                                                                                                                               .ThenBy(x => x.Cards[3])
+                                                                                                                                                               .ThenBy(x => x.Cards[4]);
 }
