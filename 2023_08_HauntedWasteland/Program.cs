@@ -1,4 +1,5 @@
-﻿using AdventCodeExtension;
+﻿//[ThroughInstructionsinfinity][LCM-NWW][GCD-NWD][MOD]
+using AdventCodeExtension;
 using System.Diagnostics;
 
 var input = File.ReadAllText($"Resources\\Input.txt");
