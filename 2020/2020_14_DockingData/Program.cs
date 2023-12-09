@@ -1,4 +1,5 @@
-﻿using AdventCodeExtension;
+﻿//[BitArray][DuplicateList][ForEach]
+using AdventCodeExtension;
 using System.Collections;
 using System.Diagnostics;
 
@@ -7,16 +8,16 @@ var stopwatch = Stopwatch.StartNew();
 
 //Part 1
 stopwatch.Start();
-var output = Part1(input);
+var output1 = Part1(input);
 stopwatch.Stop();
-Console.WriteLine($"Output Part1: {output}");
+Console.WriteLine($"Output Part1: {output1}");
 Console.WriteLine($"Done in Time: {stopwatch.ElapsedMilliseconds} ms");
 
 //Part 2
 stopwatch.Start();
-output = Part2(input);
+var output2 = Part2(input);
 stopwatch.Stop();
-Console.WriteLine($"Output Part2: {output}");
+Console.WriteLine($"Output Part2: {output2}");
 Console.WriteLine($"Done in Time: {stopwatch.ElapsedMilliseconds} ms");
 
 object Part1(string input)
@@ -28,7 +29,7 @@ object Part1(string input)
         foreach (var (memoryAdress, value) in values)
         {
             memory.Remove(memoryAdress);
-            memory.Add(memoryAdress, ApplyMask(mask, value));
+            memory.Add(memoryAdress, ApplyMaskToValue(mask, value));
         }
 
     return memory.Values.Sum();
@@ -36,7 +37,18 @@ object Part1(string input)
 
 object Part2(string input)
 {
-    return -1;
+    var data = Parse(input);
+
+    var memory = new Dictionary<long, long>();
+    foreach (var (mask, values) in data)
+        foreach (var (adress, value) in values)
+            foreach (var nextAdress in ApplyMaskToAdress(mask, adress))
+            {
+                memory.Remove(nextAdress);
+                memory.Add(nextAdress, value);
+            }
+
+    return memory.Values.Sum();
 }
 
 List<(string Mask, List<(int MemoryAdress, int Value)> Values)> Parse(string input)
@@ -54,7 +66,7 @@ List<(string Mask, List<(int MemoryAdress, int Value)> Values)> Parse(string inp
                                                                            .ToList()))
         .ToList();
 
-long ApplyMask(string mask, long value)
+long ApplyMaskToValue(string mask, long value)
 {
     var bitArray = value.ToBitArray(36);
 
@@ -71,4 +83,29 @@ long ApplyMask(string mask, long value)
         }
 
     return result.ToLong();
+}
+
+IEnumerable<long> ApplyMaskToAdress(string mask, long adress)
+{
+    var bitArray = adress.ToBitArray(36);
+
+    var result = new List<BitArray>() { new(36) };
+    for (var i = 0; i < 36; i++)
+    {
+        if (mask[i] == 'X')
+        {
+            result = result.Select(x => new BitArray[2] { x, new(x) })
+                           .ForEach(x => { x[0].Set(i, true); x[1].Set(i, false); })
+                           .SelectMany(x => x)
+                           .ToList();
+            continue;
+        }
+
+        if (mask[i] == '1')
+            result.ForEach(x => x[i] = true);
+        else
+            result.ForEach(x => x[i] = bitArray[i]);
+    }
+
+    return result.Select(x => x.ToLong());
 }
