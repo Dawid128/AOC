@@ -1,7 +1,6 @@
 ﻿using AdventCodeExtension;
 using System.Collections;
 using System.Diagnostics;
-using System.Windows.Markup;
 
 var input = File.ReadAllText($"Resources\\Input.txt");
 var stopwatch = Stopwatch.StartNew();
@@ -29,7 +28,7 @@ object Part1(string input)
         foreach (var (memoryAdress, value) in values)
         {
             memory.Remove(memoryAdress);
-            memory.Add(memoryAdress, UseMask(mask, value));
+            memory.Add(memoryAdress, ApplyMask(mask, value));
         }
 
     return memory.Values.Sum();
@@ -49,15 +48,15 @@ List<(string Mask, List<(int MemoryAdress, int Value)> Values)> Parse(string inp
         .Select(x => x.Split(Environment.NewLine)
                       .Where(x => x != string.Empty)
                       .ToArray())
-        .Select(x => (Mask: x[0], Values: x.Skip(1)
-                                           .Select(s => s.Split("="))
-                                           .Select(s => (MemoryAdress: int.Parse(s[0]), Value: int.Parse(s[1])))
-                                           .ToList()))
+        .Select(x => (Mask: new string(x[0].Reverse().ToArray()), Values: x.Skip(1)
+                                                                           .Select(s => s.Split("="))
+                                                                           .Select(s => (MemoryAdress: int.Parse(s[0]), Value: int.Parse(s[1])))
+                                                                           .ToList()))
         .ToList();
 
-long UseMask(string mask, long value)
+long ApplyMask(string mask, long value)
 {
-    var bitArray = LongToBitArray(value, 36).Reverse();
+    var bitArray = value.ToBitArray(36);
 
     var result = new BitArray(36);
     for (var i = 0; i < 36; i++)
@@ -71,27 +70,5 @@ long UseMask(string mask, long value)
                 result[i] = false;
         }
 
-    return BitArrayToLong(result.Reverse());
-}
-
-static BitArray LongToBitArray(long value, int numberOfBits)
-{
-    var bitArray = new BitArray(numberOfBits);
-    for (int i = 0; i < numberOfBits; i++)
-        bitArray[i] = (value & (1L << i)) != 0;
-
-    return bitArray;
-}
-
-static long BitArrayToLong(BitArray bitArray)
-{
-    if (bitArray.Length > 64)
-        throw new ArgumentException("BitArray is too large to convert to long");
-
-    long result = 0;
-    for (int i = 0; i < bitArray.Length; i++)
-        if (bitArray[i])
-            result |= (1L << i);
-
-    return result;
+    return result.ToLong();
 }
