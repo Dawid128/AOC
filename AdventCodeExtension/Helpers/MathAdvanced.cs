@@ -1,5 +1,4 @@
-﻿
-namespace AdventCodeExtension
+﻿namespace AdventCodeExtension
 {
     public static class MathAdvanced
     {
