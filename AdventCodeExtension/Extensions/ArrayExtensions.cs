@@ -1,4 +1,6 @@
 ﻿
+using AdventCodeExtension.Models;
+
 namespace AdventCodeExtension
 {
     public static class ArrayExtensions
@@ -28,6 +30,117 @@ namespace AdventCodeExtension
                     result[rowId - startRange.RowId][columnId - startRange.ColumnId] = jaggedArray[rowId][columnId];
 
             return result;
+        }
+
+        public static IEnumerable<Cell<T>> WhereCell<T>(this T[][] jaggedArray, Func<Cell<T>, bool> predicate)
+        => jaggedArray.SelectMany((x, rowId) => x.Select((value, columnId) => new Cell<T>(rowId, columnId, value)))
+                      .Where(predicate);
+
+        public static IEnumerable<Cell<T>> SelectAdjacent4<T>(this T[][] jaggedArray, int rowId, int columnId, Func<Cell<T>, bool> predicate)
+        {
+            foreach (var (y ,x) in new[] { (-1, 0), (0, 1), (1, 0), (0, -1) })
+            {
+                var row = jaggedArray.ElementAtOrDefault(rowId + y);
+                if (row is null)
+                    continue;
+
+                var value = row.ElementAtOrDefault(columnId + x);
+                if (value is null)
+                    continue;
+
+                var cell = new Cell<T>(rowId + y, columnId + x, value);
+                if (predicate(cell))
+                    yield return cell;
+            }
+        }
+
+
+        public static bool AnyAdjacent8<T>(this T[][] jaggedArray, int rowId, int columnId, Func<T, bool> predicate)
+        {
+            foreach (var y in new[] { -1, 0, 1 })
+                foreach (var x in new[] { -1, 0, 1 })
+                    if (y != 0 || x != 0)
+                    {
+                        var row = jaggedArray.ElementAtOrDefault(rowId + y);
+                        if (row is null)
+                            continue;
+
+                        var cell = row.ElementAtOrDefault(columnId + x);
+                        if (cell is null)
+                            continue;
+
+                        if (predicate(cell))
+                            return true;
+                    }
+
+            return false;
+        }
+
+        public static int CountAdjacent8<T>(this T[][] jaggedArray, int rowId, int columnId, Func<T, bool> predicate)
+        {
+            var result = 0;
+
+            foreach (var y in new[] { -1, 0, 1 })
+                foreach (var x in new[] { -1, 0, 1 })
+                    if (y != 0 || x != 0)
+                    {
+                        var row = jaggedArray.ElementAtOrDefault(rowId + y);
+                        if (row is null)
+                            continue;
+
+                        var cell = row.ElementAtOrDefault(columnId + x);
+                        if (cell is null)
+                            continue;
+
+                        if (predicate(cell))
+                            result++;
+                    }
+
+            return result;
+        }
+
+        public static IEnumerable<Cell<T>> SelectAdjacent8<T>(this T[][] jaggedArray, int rowId, int columnId, Func<T, bool> predicate)
+        {
+            foreach (var y in new[] { -1, 0, 1 })
+                foreach (var x in new[] { -1, 0, 1 })
+                    if (y != 0 || x != 0)
+                    {
+                        var row = jaggedArray.ElementAtOrDefault(rowId + y);
+                        if (row is null)
+                            continue;
+
+                        var cell = row.ElementAtOrDefault(columnId + x);
+                        if (cell is null)
+                            continue;
+
+                        if (predicate(cell))
+                            yield return new Cell<T>(rowId + y, columnId + x, cell);
+                    }
+        }
+
+        public static bool ContainsMinCountAdjacent8<T>(this T[][] jaggedArray, int rowId, int columnId, int minCount, Func<T, bool> predicate)
+        {
+            var count = 0;
+            foreach (var y in new[] { -1, 0, 1 })
+                foreach (var x in new[] { -1, 0, 1 })
+                    if (y != 0 || x != 0)
+                    {
+                        var row = jaggedArray.ElementAtOrDefault(rowId + y);
+                        if (row is null)
+                            continue;
+
+                        var cell = row.ElementAtOrDefault(columnId + x);
+                        if (cell is null)
+                            continue;
+
+                        if (predicate(cell))
+                            count++;
+
+                        if (count >= minCount)
+                            return true;
+                    }
+
+            return false;
         }
 
 

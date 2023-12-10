@@ -18,5 +18,16 @@ namespace AdventCodeExtension.Models
         }
 
         public Point ToPoint() => new(X, Y);
+
+        public List<PointStruct> GetAdjacentPoints()
+        {
+            var result = new List<PointStruct>();
+            foreach (var x in new[] { -1, 0, 1 })
+                foreach (var y in new[] { -1, 0, 1 })
+                    if (x != 0 || y != 0)
+                        result.Add(new PointStruct(X + x, Y + y));
+
+            return result;
+        }
     }
 }
