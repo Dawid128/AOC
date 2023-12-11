@@ -169,6 +169,18 @@ namespace AdventCodeExtension
             return result;
         }
 
+        public static IEnumerable<T[]> TakeRows<T>(this T[,] original)
+        {
+            for (int rowId = 0; rowId < original.GetLength(0); rowId++)
+            {
+                var row = new T[original.GetLength(1)];
+                for (int columnId = 0; columnId < original.GetLength(1); columnId++)
+                    row[columnId] = original[rowId, columnId];
+
+                yield return row;
+            }
+        }
+
         public static T[] TakeColumn<T>(this T[,] original, int columnId)
         {
             var result = new T[original.GetLength(0)];
@@ -176,6 +188,18 @@ namespace AdventCodeExtension
                 result[i] = original[i, columnId];
 
             return result;
+        }
+
+        public static IEnumerable<T[]> TakeColumns<T>(this T[,] original)
+        {
+            for (int columnId = 0; columnId < original.GetLength(1); columnId++)
+            {
+                var column = new T[original.GetLength(0)];
+                for (int rowId = 0; rowId < original.GetLength(0); rowId++)
+                    column[rowId] = original[rowId, columnId];
+
+                yield return column;
+            }
         }
 
         public static T[,] TakeRange<T>(this T[,] original, (int RowId, int ColumnId) startRange, (int RowId, int ColumnId) endRange)
@@ -198,6 +222,58 @@ namespace AdventCodeExtension
             for (int rowId = startRange.RowId; rowId <= endRange.RowId; rowId++)
                 for (int columnId = startRange.ColumnId; columnId <= endRange.ColumnId; columnId++)
                     original[rowId, columnId] = insert[rowId - startRange.RowId, columnId - startRange.ColumnId];
+        }
+
+        public static T[,] InsertRow<T>(this T[,] array, int rowIndex, T[] newRow)
+        {
+            int numRows = array.GetLength(0);
+            int numCols = array.GetLength(1);
+
+            if (rowIndex < 0 || rowIndex > numRows)
+                throw new ArgumentOutOfRangeException(nameof(rowIndex), "Invalid row index");
+
+            if (newRow.Length != numCols)
+                throw new ArgumentException("The length of the new row must match the number of columns in the array", nameof(newRow));
+
+            T[,] newArray = new T[numRows + 1, numCols];
+            for (int i = 0; i < rowIndex; i++)
+                for (int j = 0; j < numCols; j++)
+                    newArray[i, j] = array[i, j];
+
+            for (int j = 0; j < numCols; j++)
+                newArray[rowIndex, j] = newRow[j];
+
+            for (int i = rowIndex + 1; i < numRows + 1; i++)
+                for (int j = 0; j < numCols; j++)
+                    newArray[i, j] = array[i - 1, j];
+
+            return newArray;
+        }
+
+        public static T[,] InsertColumn<T>(this T[,] array, int colIndex, T[] newColumn)
+        {
+            int numRows = array.GetLength(0);
+            int numCols = array.GetLength(1);
+
+            if (colIndex < 0 || colIndex > numCols)
+                throw new ArgumentOutOfRangeException(nameof(colIndex), "Invalid column index");
+
+            if (newColumn.Length != numRows)
+                throw new ArgumentException("The length of the new column must match the number of rows in the array", nameof(newColumn));
+
+            T[,] newArray = new T[numRows, numCols + 1];
+            for (int i = 0; i < numRows; i++)
+                for (int j = 0; j < colIndex; j++)
+                    newArray[i, j] = array[i, j];
+
+            for (int i = 0; i < numRows; i++)
+                newArray[i, colIndex] = newColumn[i];
+
+            for (int i = 0; i < numRows; i++)
+                for (int j = colIndex + 1; j < numCols + 1; j++)
+                    newArray[i, j] = array[i, j - 1];
+
+            return newArray;
         }
 
         public static T[,] TransposeArray<T>(this T[,] original)
