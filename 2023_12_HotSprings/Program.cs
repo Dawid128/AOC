@@ -1,7 +1,11 @@
-﻿using AdventCodeExtension;
-using System.ComponentModel;
+﻿//[DynamicProgramming][TopDownApproch][Recursion][Cache][EnumerableRepeat][ReadOnlySpan][Slice][EquivalentRangeSyntax]
+using AdventCodeExtension;
+using System.Buffers;
 using System.Diagnostics;
-using System.Globalization;
+
+Dictionary<string, long> _cache = [];
+var searchHash = SearchValues.Create("#".AsSpan());
+var searchDot = SearchValues.Create(".".AsSpan());
 
 var input = File.ReadAllText($"Resources\\Input.txt");
 var stopwatch = Stopwatch.StartNew();
@@ -30,50 +34,75 @@ object Part1(string input)
                                                .ToList()))
                     .ToList();
 
-    var count = 0;
+    long count = 0;
     foreach (var (mask, numbers) in data)
-        count += DifferentArrangementsCount(mask, numbers);
+        count += DifferentArrangementsCount(mask.AsSpan(), numbers);
 
     return count;
 }
 
 object Part2(string input)
 {
-    return -1;
+    var data = input.Split(Environment.NewLine)
+                    .Select(x => x.Split(" "))
+                    .Select(x => (Mask: x[0],
+                                  Numbers: x[1].Split(",")
+                                               .Select(s => int.Parse(s))
+                                               .ToList()))
+                    .Select(x => (Mask: Enumerable.Repeat(x.Mask, 5).Aggregate((x, y) => $"{x}?{y}"),
+                                  Numbers: Enumerable.Repeat(x.Numbers, 5).SelectMany(x => x).ToList()))
+                    .ToList();
+
+    long count = 0;
+    foreach (var (mask, numbers) in data)
+        count += DifferentArrangementsCount(mask.AsSpan(), numbers);
+
+    return count;
 }
 
-int DifferentArrangementsCount(string input, IList<int> numbers)
+long DifferentArrangementsCount(ReadOnlySpan<char> input, IList<int> numbers)
 {
-    var count = 0;
-    bool IsValid(string part, char? before, char? after) => !part.Contains('.') && before != '#' && after != '#';
+    long count = 0;
+    bool IsValid(ReadOnlySpan<char> part, char? before, char? after) => !part.ContainsAny(searchDot) && before != '#' && after != '#';
 
     var minLength = numbers.Sum() + numbers.Count - 1;
     var firstNumber = numbers.First();
     for (int i = 0; i <= input.Length - minLength; i++) 
     {
-        var part = input.Substring(i, firstNumber);
-        var before = input.ElementAtOrDefault(i - 1);
-        var after = input.ElementAtOrDefault(i + firstNumber);
+        var part = input.Slice(i, firstNumber);
+        char? before = i > 0 ? input[i - 1] : null;
+        char? after = i + firstNumber < input.Length ? input[i + firstNumber] : null;
         if (!IsValid(part, before, after)) 
             continue;
 
         if (i > 0)
         {
-            var partBefore = input.Substring(0, i);
-            if (partBefore.Any(x => x == '#'))
+            var partBefore = input[..i];
+            if (partBefore.ContainsAny(searchHash))
                 break;
         }
 
         if (numbers.Count == 1)
         {
-            var partAfter = input.Substring(i + firstNumber);
-            if (!partAfter.Any(x => x == '#'))
+            var partAfter = input[(i + firstNumber)..];
+            if (!partAfter.ContainsAny(searchHash))
                 count++;
 
             continue;
         }
 
-        count += DifferentArrangementsCount(input.Substring(i + firstNumber + 1), numbers.Skip(1).ToList());
+        var nextInput = input[(i + firstNumber + 1)..];
+        var nextNumbers = numbers.Skip(1).ToList();
+        var key = nextInput.ToString() + " ; " + nextNumbers.Select(x => x.ToString()).Aggregate((x, y) => $"{x},{y}");
+        if (_cache.TryGetValue(key, out var countTemp))
+        {
+            count += countTemp;
+            continue;
+        }
+
+        countTemp = DifferentArrangementsCount(nextInput, nextNumbers);
+        count += countTemp;
+        _cache.Add(key, countTemp);
     }
 
     return count;
