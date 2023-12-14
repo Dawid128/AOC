@@ -1,10 +1,33 @@
 ﻿
 using AdventCodeExtension.Models;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace AdventCodeExtension
 {
     public static class ArrayExtensions
     {
+        public static string GenerateUniqueId(this char[,] array2D)
+        {
+            int rows = array2D.GetLength(0);
+            int cols = array2D.GetLength(1);
+            int[] flattenedArray = new int[rows * cols];
+
+            int index = 0;
+            for (int i = 0; i < rows; i++)
+                for (int j = 0; j < cols; j++)
+                    flattenedArray[index++] = array2D[i, j];
+
+            string idString = string.Join("", flattenedArray);
+            var hashBytes = MD5.HashData(Encoding.UTF8.GetBytes(idString));
+            var sb = new StringBuilder();
+
+            for (int i = 0; i < hashBytes.Length; i++)
+                sb.Append(hashBytes[i].ToString("x2"));
+
+            return sb.ToString();
+        }
+
         public static T[,] To2DArray<T>(this T[][] jaggedArray)
         {
             int rows = jaggedArray.Length;
@@ -324,6 +347,19 @@ namespace AdventCodeExtension
             for (int i = 0; i < rows; i++)
                 for (int j = 0; j < cols; j++)
                     result[j, rows - 1 - i] = original[i, j];
+
+            return result;
+        }
+
+        public static T[,] Duplicate<T>(this T[,] original)
+        {
+            var rows = original.GetLength(0);
+            var cols = original.GetLength(1);
+            var result = new T[rows, cols];
+
+            for (int i = 0; i < rows; i++)
+                for (int j = 0; j < cols; j++)
+                    result[i, j] = original[i, j];
 
             return result;
         }
