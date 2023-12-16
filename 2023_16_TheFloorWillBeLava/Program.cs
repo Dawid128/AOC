@@ -1,4 +1,4 @@
-﻿//[Array2D][Map][Iterators][PointStruct][LocalCache][MoveOnMap][Queue][GoIn2Sides]
+﻿//[Array2D][Map][Iterators][PointStruct][LocalCache][MoveOnMap][Queue][GoIn2Sides][SwitchExpressionSyntax]
 using AdventCodeExtension;
 using AdventCodeExtension.Models;
 using System.Diagnostics;
@@ -85,28 +85,18 @@ int GetScore(char[,] map, (PointStruct Point, PointStruct Move) input)
             continue;
 
         selectVisited[nextPoint.Y][nextPoint.X] = true;
-        var nextValue = map[nextPoint.Y, nextPoint.X];
 
-        if (nextValue == '/') 
+        PointStruct[] nextMoves = map[nextPoint.Y, nextPoint.X] switch
         {
-            points.Enqueue((nextPoint, new(move.Y * -1, move.X * -1)));
-            continue;
-        }
+            '\\' => [new(move.Y, move.X)],
+            '/' => [new(move.Y * -1, move.X * -1)],
+            '|' when move.X != 0 => [new(move.Y, move.X), new(move.Y * -1, move.X * -1)],
+            '-' when move.Y != 0 => [new(move.Y, move.X), new(move.Y * -1, move.X * -1)],
+            _ => [new(move.X, move.Y)]
+        };
 
-        if (nextValue == '\\')
-        {
-            points.Enqueue((nextPoint, new(move.Y, move.X)));
-            continue;
-        }
-
-        if ((move.X != 0 && nextValue == '|') || (move.Y != 0 && nextValue == '-'))
-        {
-            points.Enqueue((nextPoint, new(move.Y, move.X)));
-            points.Enqueue((nextPoint, new(move.Y * -1, move.X * -1)));
-            continue;
-        }
-
-        points.Enqueue((nextPoint, new(move.X, move.Y)));
+        foreach (var nextMove in nextMoves)
+            points.Enqueue((nextPoint, nextMove));
     }
 
     return selectVisited.SelectMany(x => x).Count(x => x == true);
