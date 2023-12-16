@@ -29,5 +29,16 @@ namespace AdventCodeExtension.Models
 
             return result;
         }
+
+        public readonly PointStruct Rotate(PointStruct center, PointRotate rotate)
+        => rotate switch
+        {
+            PointRotate.Left => Move(center.X * -1, center.Y * -1).RotateLeft().Move(center.X, center.Y),
+            PointRotate.Right => Move(center.X * -1, center.Y * -1).RotateRight().Move(center.X, center.Y),
+            _ => throw new ArgumentOutOfRangeException(nameof(rotate))
+        };
+        public readonly PointStruct RotateLeft() => new(Y * -1, X);
+        public readonly PointStruct RotateRight() => new(Y, X * -1);
+        public readonly PointStruct Move(int x, int y) => new(X + x, Y + y);
     }
 }
