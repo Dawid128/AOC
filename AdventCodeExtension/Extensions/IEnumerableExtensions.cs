@@ -29,5 +29,14 @@ namespace AdventCodeExtension
 
             return result;
         }
+
+        static int GetListHashCode<T>(this IEnumerable<T> input)
+        {
+            int hash = 17;
+            foreach (var item in input)
+                hash = hash * 31 + item?.GetHashCode() ?? 0;
+
+            return hash;
+        }
     }
 }

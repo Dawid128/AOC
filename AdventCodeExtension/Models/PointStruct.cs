@@ -30,6 +30,15 @@ namespace AdventCodeExtension.Models
             return result;
         }
 
+        public readonly List<PointStruct> GetAdjacentPoints4(int radius)
+        {
+            var result = new List<PointStruct>();
+            for (int i = 1; i <= radius; i++)
+                foreach (var (x, y) in new[] { (-1, 0), (0, 1), (1, 0), (0, -1) })
+                    result.Add(Move(x * i, y * i));
+
+            return result;
+        }
         public readonly PointStruct Rotate(PointStruct center, PointRotate rotate)
         => rotate switch
         {
@@ -39,6 +48,12 @@ namespace AdventCodeExtension.Models
         };
         public readonly PointStruct RotateLeft() => new(Y * -1, X);
         public readonly PointStruct RotateRight() => new(Y, X * -1);
+
+        public readonly PointStruct Move(PointStruct point) => Move(point.X, point.Y);
+        public readonly PointStruct Move((int X, int Y) coordinates) => Move(coordinates.X, coordinates.Y);
         public readonly PointStruct Move(int x, int y) => new(X + x, Y + y);
+
+        public static bool operator ==(PointStruct pointL, PointStruct pointR) => ((pointL.X, pointL.Y) == (pointR.X, pointR.Y));
+        public static bool operator !=(PointStruct pointL, PointStruct pointR) => ((pointL.X, pointL.Y) != (pointR.X, pointR.Y));
     }
 }
