@@ -1,5 +1,7 @@
-﻿using AdventCodeExtension;
+﻿//[Range][Instructions][ConditionsList]
+using AdventCodeExtension;
 using System.Diagnostics;
+using Range = AdventCodeExtension.Models.Range;
 
 var input = File.ReadAllText($"Resources\\Input.txt");
 var stopwatch = Stopwatch.StartNew();
@@ -34,7 +36,11 @@ object Part1(string input)
 
 object Part2(string input)
 {
-    return -1;
+    var split = input.Split(Environment.NewLine + Environment.NewLine);
+    var workslows = WorkflowProcessor.ParseToWorkflows(split[0]);
+
+    var numbers = new[] { "x", "m", "a", "s" }.ToDictionary(x => x, x => Range.CreateRangeBetween(1, 4000));
+    return WorkflowProcessor.HowMuch(workslows, workslows["in"], numbers);
 }
 
 public static class WorkflowProcessor
@@ -116,6 +122,55 @@ public static class WorkflowProcessor
                 break;
             }
         }
+    }
+
+    public static long HowMuch(Dictionary<string, List<(string? Key, int Value, string? Operator, string Result)>> workflows, 
+                               List<(string? Key, int Value, string? Operator, string Result)> instructions, 
+                               Dictionary<string, Range> numbers)
+    {
+        var (key, value, @operator, result) = instructions.First();
+
+        (Range RangeMeetConditions, Range RangeNotMeetConditions) GetRanges(string key, string @operator)
+        => @operator == ">"
+        ? (numbers[key].CutRangeBefore(value).RemoveFirstNumber(), numbers[key].CutRangeAfter(value))
+        : (numbers[key].CutRangeAfter(value).RemoveLastNumber(), numbers[key].CutRangeBefore(value));
+
+        long ExecuteWhenValid(Range? range)
+        {
+            var numbersCopy = numbers.ToDictionary();
+            if (key is not null && range is not null)
+                numbersCopy[key] = range.Value;
+
+            if (result == "A")
+                return numbersCopy.Values.Select(x => x.Length).Product();
+
+            if (result == "R")
+                return 0;
+
+            return HowMuch(workflows, [.. workflows[result]], numbersCopy);
+        }
+
+        long ExecuteWhenNotValid(Range range)
+        {
+            var numbersCopy = numbers.ToDictionary();
+            if (key is not null)
+                numbersCopy[key] = range;
+
+            return HowMuch(workflows, [.. instructions.Skip(1)], numbersCopy);
+        }
+
+        Range? rangeMeetConditions = null;
+        Range? rangeNotMeetConditions = null;
+        if (key is not null && @operator is not null)
+            (rangeMeetConditions, rangeNotMeetConditions) = GetRanges(key, @operator);
+
+        long score = 0;
+        if (rangeMeetConditions is null || rangeMeetConditions.Value.Length > 0)
+            score += ExecuteWhenValid(rangeMeetConditions);
+        if (rangeNotMeetConditions is not null)
+            score += ExecuteWhenNotValid(rangeNotMeetConditions.Value);
+
+        return score;
     }
 }
 

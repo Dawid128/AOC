@@ -30,6 +30,15 @@ namespace AdventCodeExtension
             return result;
         }
 
+        public static long Product(this IEnumerable<long> input)
+        {
+            var result = input.First();
+            foreach (var item in input.Skip(1))
+                result *= item;
+
+            return result;
+        }
+
         static int GetListHashCode<T>(this IEnumerable<T> input)
         {
             int hash = 17;

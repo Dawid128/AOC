@@ -12,7 +12,32 @@ namespace AdventCodeExtension.Models
         public bool IsInside(Range otherRange) => Start >= otherRange.Start && End <= otherRange.End;
 
         public bool IsOverlap(Range otherRange) => Math.Max(Start, otherRange.Start) < Math.Min(End, otherRange.End);
- 
+
+        public Range CutRangeAfter(int number)
+        {
+            if (number > End)
+                return CreateRangeBetween(Start, End);
+
+            if (Start > number)
+                return CreateRangeBetween(0, 0);
+
+            return CreateRangeBetween(Start, number);
+        }
+
+        public Range CutRangeBefore(int number)
+        {
+            if (number < Start)
+                return CreateRangeBetween(Start, End);
+
+            if (End < number)
+                return CreateRangeBetween(0, 0);
+
+            return CreateRangeBetween(number, End);
+        }
+
+        public Range RemoveLastNumber() => Length > 0 ? CreateRangeBetween(Start, End - 1) : CreateRangeBetween(0, 0);
+        public Range RemoveFirstNumber() => Length > 0 ? CreateRangeBetween(Start + 1, End) : CreateRangeBetween(0, 0);
+
         /// <summary>
         /// Split the current range by the input ranges
         /// </summary>
