@@ -39,6 +39,9 @@ namespace AdventCodeExtension.Models
 
             return result;
         }
+
+        public readonly PointStruct Copy() => new(X, Y);
+
         public readonly PointStruct Rotate(PointStruct center, PointRotate rotate)
         => rotate switch
         {
@@ -55,5 +58,6 @@ namespace AdventCodeExtension.Models
 
         public static bool operator ==(PointStruct pointL, PointStruct pointR) => ((pointL.X, pointL.Y) == (pointR.X, pointR.Y));
         public static bool operator !=(PointStruct pointL, PointStruct pointR) => ((pointL.X, pointL.Y) != (pointR.X, pointR.Y));
+        public static PointStruct operator -(PointStruct pointL, PointStruct pointR) => new(pointL.X - pointR.X, pointL.Y - pointR.Y);
     }
 }
