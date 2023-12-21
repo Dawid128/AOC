@@ -58,8 +58,8 @@ object Part1(string input)
                    .ToArray()
                    .To2DArray();
 
-    var start = new Node(null, new(0, 0), 0);
-    var end = new Node(null, new(map.GetLength(1) - 1, map.GetLength(0) - 1), 0);
+    var start = new Node(new(0, 0), default, default);
+    var end = new Node(new(map.GetLength(1) - 1, map.GetLength(0) - 1), default, default);
     start.H = AStar.CalculateHeuristic(start, end);
     return AStar.FindMinCost(map, start, end);
 }
@@ -69,23 +69,15 @@ object Part2(string input)
     return -1;
 }
 
-public class Node
+public class Node(PointStruct point, PointStruct previousMove, int moveOneDirectionCount)
 {
-    public PointStruct Point { get; set; }
-    public PointStruct PreviousMove { get => Parent is null ? new PointStruct(0, 0) : Point - Parent.Point; }
-    public int MoveOneDirectionCount { get; set; }
-    public Node? Parent { get; set; }
+    public PointStruct Point { get; set; } = point;
+    public PointStruct PreviousMove { get; set; } = previousMove;
+    public int MoveOneDirectionCount { get; set; } = moveOneDirectionCount;
 
     public int G { get; set; } // Cost from start node to current node
     public int H { get; set; } // Heuristic estimate from current node to goal node
     public int F { get => G + H; } // Total cost: F = G + H
-
-    public Node(Node? parent, PointStruct point, int moveOneDirectionCount)
-    {
-        Parent = parent;
-        Point = point;
-        MoveOneDirectionCount = moveOneDirectionCount;
-    }
 
     public static bool operator ==(Node? nodeL, Node? nodeR) => nodeL?.Equals(nodeR) ?? nodeL is null && nodeR is null;
     public static bool operator !=(Node? nodeL, Node? nodeR) => !nodeL?.Equals(nodeR) ?? !(nodeL is null && nodeR is null);
@@ -103,46 +95,6 @@ public class Node
 
 public static class AStar
 {
-    public static List<Node>? FindPath(int[,] map, Node start, Node end)
-    {
-        List<Node> openSet = [start];
-        List<Node> closedSet = [];
-
-        while (openSet.Count > 0)
-        {
-            var current = openSet[0];
-            for (int i = 1; i < openSet.Count; i++)
-                if (openSet[i].F < current.F || (openSet[i].F == current.F && openSet[i].H < current.H))
-                    current = openSet[i];
-
-            openSet.Remove(current);
-            closedSet.Add(current);
-
-            if (current.Point == end.Point)
-                return ReconstructPath(current);
-
-            var neighbors = GetNeighbors(map, current);
-            foreach (var neighbor in neighbors)
-            {
-                if (closedSet.Contains(neighbor))
-                    continue;
-
-                int tentativeG = current.G + map[neighbor.Point.Y, neighbor.Point.X];
-                if (!openSet.Contains(neighbor) || tentativeG < neighbor.G)
-                {
-                    neighbor.G = tentativeG;
-                    neighbor.H = CalculateHeuristic(neighbor, end);
-                    neighbor.Parent = current;
-
-                    if (!openSet.Contains(neighbor))
-                        openSet.Add(neighbor);
-                }
-            }
-        }
-
-        return null;
-    }
-
     public static int FindMinCost(int[,] map, Node start, Node end)
     {
         List<Node> openSet = [start];
@@ -150,9 +102,6 @@ public static class AStar
 
         while (openSet.Count > 0)
         {
-            if (closedSet.Count % 1000 == 0)
-                Console.WriteLine("Next 1k");
-
             var current = openSet[0];
             for (int i = 1; i < openSet.Count; i++)
                 if (openSet[i].F < current.F || (openSet[i].F == current.F && openSet[i].H < current.H))
@@ -161,7 +110,7 @@ public static class AStar
             openSet.Remove(current);
             closedSet.Add(current);
 
-            if (current.Point == end.Point)
+            if (current.Point == end.Point && current.MoveOneDirectionCount >= 4) 
                 return current.G;
 
             var neighbors = GetNeighbors(map, current);
@@ -175,7 +124,6 @@ public static class AStar
                 {
                     neighbor.G = tentativeG;
                     neighbor.H = CalculateHeuristic(neighbor, end);
-                    neighbor.Parent = current;
 
                     if (!openSet.Contains(neighbor))
                         openSet.Add(neighbor);
@@ -189,18 +137,6 @@ public static class AStar
     public static int CalculateHeuristic(Node a, Node b)
     {
         return Math.Abs(a.Point.X - b.Point.X) + Math.Abs(a.Point.Y - b.Point.Y);
-    }
-
-    private static List<Node> ReconstructPath(Node current)
-    {
-        List<Node> path = [];
-        while (current is not null)
-        {
-            path.Insert(0, current);
-            current = current.Parent;
-        }
-
-        return path;
     }
 
     private static List<Node> GetNeighbors(int[,] map, Node node)
@@ -219,9 +155,16 @@ public static class AStar
             if (node.PreviousMove == new PointStruct(x, y)) 
                 continueMoveOneDirection = true;
 
-            //Ignore the points if continue straight is not possible
-            if (node.MoveOneDirectionCount == 3 && continueMoveOneDirection)
-                continue;
+            if (node.MoveOneDirectionCount > 0)
+            {
+                //Ignore the points if continue straight is not possible
+                if (node.MoveOneDirectionCount < 4 && !continueMoveOneDirection)
+                    continue;
+
+                //Ignore the points if continue straight is not possible
+                if (node.MoveOneDirectionCount >= 10 && continueMoveOneDirection)
+                    continue;
+            }
 
             var newPoint = new PointStruct(node.Point.X + x, node.Point.Y + y);
 
@@ -229,7 +172,7 @@ public static class AStar
             if ((newPoint.X < 0 || newPoint.X >= columnsNumber) || (newPoint.Y < 0 || newPoint.Y >= rowsNumber))
                 continue;
 
-            result.Add(new(node, newPoint, continueMoveOneDirection ? node.MoveOneDirectionCount + 1 : 1));
+            result.Add(new(newPoint, new PointStruct(x, y), continueMoveOneDirection ? node.MoveOneDirectionCount + 1 : 1));
         }
 
         return result;
