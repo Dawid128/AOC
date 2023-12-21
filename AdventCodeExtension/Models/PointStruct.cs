@@ -40,6 +40,21 @@ namespace AdventCodeExtension.Models
             return result;
         }
 
+        public readonly IEnumerable<PointStruct> GetAdjacentPoints4(int radius, int width, int height)
+        {
+            for (int i = 1; i <= radius; i++)
+                foreach (var (x, y) in new[] { (-1, 0), (0, 1), (1, 0), (0, -1) })
+                {
+                    var newPoint = Move(x * i, y * i);
+
+                    //Ignore the points, if is outside of map
+                    if ((newPoint.X < 0 || newPoint.X >= width) || (newPoint.Y < 0 || newPoint.Y >= height))
+                        continue;
+
+                    yield return newPoint;
+                }
+        }
+
         public readonly PointStruct Copy() => new(X, Y);
 
         public readonly PointStruct Rotate(PointStruct center, PointRotate rotate)
