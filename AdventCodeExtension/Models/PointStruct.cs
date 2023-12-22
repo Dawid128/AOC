@@ -55,6 +55,34 @@ namespace AdventCodeExtension.Models
                 }
         }
 
+        public readonly IEnumerable<(PointStruct Point, bool Outside)> GetInfiniteAdjacentPoints4(int width, int height)
+        {
+            foreach (var (x, y) in new[] { (-1, 0), (0, 1), (1, 0), (0, -1) })
+            {
+                var newPoint = Move(x, y);
+
+                if ((newPoint.X < 0 || newPoint.X >= width) || (newPoint.Y < 0 || newPoint.Y >= height))
+                {
+                    var newX = newPoint.X;
+                    if (newX < 0)
+                        newX += width;
+                    else if (newX >= width)
+                        newX -= width;
+
+                    var newY = newPoint.Y;
+                    if (newY < 0)
+                        newY += height;
+                    else if (newY >= height)
+                        newY -= height;
+
+                    yield return (new(newX, newY), true);
+                    continue;
+                }
+
+                yield return (newPoint, false);
+            }
+        }
+
         public readonly PointStruct Copy() => new(X, Y);
 
         public readonly PointStruct Rotate(PointStruct center, PointRotate rotate)
