@@ -1,12 +1,7 @@
 ﻿//[DuplicateList]
-using AdventCodeExtension;
 using AdventCodeExtension.Models;
-using System.Collections;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.IO;
-using System.Net;
 
 var input = File.ReadAllText($"Resources\\Input.txt");
 var stopwatch = Stopwatch.StartNew();
@@ -37,20 +32,27 @@ object Part1(string input)
     var endPoint = new PointStruct(width - 2, height - 1);
 
     return JustGo(map, height, width, startPoint, endPoint, []).Max();
-
-    //var paths = GetPaths(map, height, width, startPoint, endPoint);
-    //var duplicatePaths = paths.SelectMany(x => new[] { x, new(x.PointEnd, x.PointStart, x.Length) }).ToList();
-
-    //var graph = new Graph();
-    //foreach (var path in duplicatePaths)
-    //    graph.AddEdge(path.PointStart, path.PointEnd, path.Length);
-
-    //return graph.FindMaxValue(startPoint, endPoint);
 }
 
 object Part2(string input)
 {
-    return -1;
+    var map = input.Split(Environment.NewLine)
+                   .Select(x => x.ToCharArray())
+                   .ToArray();
+
+    var height = map.Length;
+    var width = map[0].Length;
+    var startPoint = new PointStruct(1, 0);
+    var endPoint = new PointStruct(width - 2, height - 1);
+
+    var paths = GetPaths(map, height, width, startPoint, endPoint);
+    var duplicatePaths = paths.SelectMany(x => new[] { x, new(x.PointEnd, x.PointStart, x.Length) }).ToList();
+
+    var graph = new Graph();
+    foreach (var path in duplicatePaths)
+        graph.AddEdge(path.PointStart, path.PointEnd, path.Length);
+
+    return graph.FindMaxValue(startPoint, endPoint);
 }
 
 List<int> JustGo(char[][] map, int height, int width, PointStruct startPoint, PointStruct endPoint, HashSet<PointStruct> visited)
@@ -227,7 +229,7 @@ class Graph
 
         DFS(startNode, endNode, [], [], ref path, ref maxPathValue);
 
-        return maxPathValue - path.Count + 2; //because each crosspoint was count 2 times (exept start and end)
+        return maxPathValue - path.Count + 1; //because each crosspoint was count 2 times (exept start)
     }
 
     private void DFS(PointStruct currentNode, PointStruct endNode, HashSet<PointStruct> visitedNodes, List<PointStruct> currentPath, ref List<PointStruct> maxPath, ref int maxPathValue)
