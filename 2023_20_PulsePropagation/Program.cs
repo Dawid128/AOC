@@ -25,15 +25,31 @@ object Part1(string input)
                        .ToDictionary(x => x.Key, x => (x.Type, x.HighState, x.Output));
 
     (int LowPulseCount, int HighPulseCount) counter = new(0, 0);
+    Dictionary<string, long> checker = [];
     for (int i = 1; i <= 1000; i++)
-        Execute(modules, ref counter);
+        Execute(i, modules, ref checker, ref counter);
 
     return counter.LowPulseCount * counter.HighPulseCount;
 }
 
 object Part2(string input)
 {
-    return -1;
+    var modules = input.Split(Environment.NewLine)
+                       .Select(Parse)
+                       .ToDictionary(x => x.Key, x => (x.Type, x.HighState, x.Output));
+
+    //Find 4 conjunctions in 4 different circles
+    HashSet<string> conjunctions = [];
+    foreach (var flipFlop in modules["broadcaster"].Output)
+        conjunctions.Add(modules.Single(x => x.Value.Type == "&" && x.Value.Output.Contains(flipFlop)).Key);
+
+    (int LowPulseCount, int HighPulseCount) counter = new(0, 0);
+    Dictionary<string, long> checker = [];
+    int round = 0;
+    while (conjunctions.Intersect(checker.Keys.ToList()).Count() != conjunctions.Count) 
+        Execute(++round, modules, ref checker, ref counter);
+
+    return conjunctions.Select(x => checker[x]).Product();
 }
 
 (string Key, string Type, bool HighState, List<string> Output) Parse(string input)
@@ -55,7 +71,7 @@ object Part2(string input)
     return (key, type, false, split[1].Split(", ").ToList());
 }
 
-void Execute(Dictionary<string, (string Type, bool HighState, List<string> OutputModules)> modules, ref (int LowPulseCount, int HighPulseCount) counter)
+void Execute(int round, Dictionary<string, (string Type, bool HighState, List<string> OutputModules)> modules, ref Dictionary<string, long> checker, ref (int LowPulseCount, int HighPulseCount) counter)
 {
     counter.LowPulseCount++; //Every time, it is from button to broadcaster
 
@@ -98,7 +114,10 @@ void Execute(Dictionary<string, (string Type, bool HighState, List<string> Outpu
             module.HighState = true;
             var previousModules = modules.Where(x => x.Value.OutputModules.Contains(key)).ToList();
             if (previousModules.All(x => x.Value.HighState))
+            {
+                checker.TryAdd(key, round);
                 module.HighState = false;
+            }
 
             modules[key] = module; //Save changes in main list
 
