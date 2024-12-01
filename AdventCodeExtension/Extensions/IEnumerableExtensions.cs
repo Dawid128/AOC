@@ -3,6 +3,12 @@ namespace AdventCodeExtension
 {
     public static class IEnumerableExtensions
     {
+        public static void AddRange<T>(this HashSet<T> source, IList<T> items)
+        {
+            foreach (var item in items)
+                source.Add(item);
+        }
+
         public static IEnumerable<T> ForEach<T>(this IEnumerable<T> source, Action<T> action)
         {
             ArgumentNullException.ThrowIfNull(source);
