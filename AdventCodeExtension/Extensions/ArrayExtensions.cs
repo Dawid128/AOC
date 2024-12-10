@@ -77,6 +77,21 @@ namespace AdventCodeExtension
             }
         }
 
+        public static Point SinglePoint<T>(this T[][] jaggedArray, Func<T, bool> predicate)
+        {
+            var points = new List<Point>();
+
+            for (int rowId = 0; rowId < jaggedArray.Length; rowId++)
+                for (int columnId = 0; columnId < jaggedArray[rowId].Length; columnId++)
+                {
+                    if (!predicate.Invoke(jaggedArray[rowId][columnId])) 
+                        continue;
+
+                    points.Add(new Point(columnId, rowId));
+                }
+
+            return points.Single();
+        }
 
         public static bool AnyAdjacent8<T>(this T[][] jaggedArray, int rowId, int columnId, Func<T, bool> predicate)
         {
@@ -222,6 +237,42 @@ namespace AdventCodeExtension
                     column[rowId] = original[rowId, columnId];
 
                 yield return column;
+            }
+        }
+
+        public static IEnumerable<T[]> TakeDiagonals<T>(this T[,] array)
+        {
+            var rows = array.GetLength(0);
+            var cols = array.GetLength(1);
+
+            for (int startRow = rows - 1; startRow >= 0; startRow--)
+            {
+                var diagonal = new List<T>();
+                var r = startRow;
+                var c = 0;
+
+                while (r < rows && c < cols)
+                {
+                    diagonal.Add(array[r, c]);
+                    r++;
+                    c++;
+                }
+                yield return diagonal.ToArray();
+            }
+
+            for (int startCol = 1; startCol < cols; startCol++)
+            {
+                var diagonal = new List<T>();
+                var r = 0;
+                var c = startCol;
+
+                while (r < rows && c < cols)
+                {
+                    diagonal.Add(array[r, c]);
+                    r++;
+                    c++;
+                }
+                yield return diagonal.ToArray();
             }
         }
 

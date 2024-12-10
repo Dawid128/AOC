@@ -1,6 +1,8 @@
-﻿
+﻿using System.Diagnostics;
+
 namespace AdventCodeExtension.Models
 {
+    [DebuggerDisplay("[{ColumnId};{RowId}]={Value}")]
     public struct Cell<T>
     {
         public int RowId { get; set; }
